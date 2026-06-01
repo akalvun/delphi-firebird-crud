@@ -15,13 +15,17 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, System.Classes, System.IOUtils,
+  Data.FMTBcd, Data.SqlTimSt,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
-  Vcl.Grids, Vcl.DBGrids, Data.DB,
+  Vcl.Graphics, Vcl.Grids, Vcl.DBGrids, Data.DB,
   FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error,
   FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool,
   FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.FB, FireDAC.Phys.FBDef,
   FireDAC.VCLUI.Wait, FireDAC.Comp.Client, FireDAC.Comp.DataSet,
   FireDAC.DApt, FireDAC.Stan.Param;
+
+const
+  APP_TITLE = 'Products Catalog';
 
 type
   TfrmMain = class(TForm)
@@ -43,6 +47,8 @@ type
     procedure SetupConnection;
     procedure EnsureSchema;
     procedure RefreshGrid(const ASearch: string = '');
+    procedure ConfigureGridColumns;
+    procedure UpdateCaption;
     procedure ClearInputs;
     function ValidateInputs(out ACode, AName: string;
       out APrice: Double; out AQty: Integer): Boolean;
@@ -227,6 +233,50 @@ begin
   FGrid.OnCellClick := GridCellClick;
 end;
 
+{ ---------------- presentation helpers ---------------- }
+
+procedure TfrmMain.ConfigureGridColumns;
+
+  procedure SetCol(const AField, ATitle: string; AWidth: Integer;
+    AAlign: TAlignment; const ADisplayFormat: string = '');
+  var
+    Col: TColumn;
+    Fld: TField;
+  begin
+    Col := FGrid.Columns.Add;
+    Col.FieldName  := AField;
+    Col.Title.Caption := ATitle;
+    Col.Width      := AWidth;
+    Col.Alignment  := AAlign;             // data cells
+    Col.Title.Alignment := AAlign;        // header cell
+    // Apply a display format (e.g. price with two decimals) when given.
+    if ADisplayFormat <> '' then
+    begin
+      Fld := FQuery.FindField(AField);
+      if Fld is TFloatField then
+        TFloatField(Fld).DisplayFormat := ADisplayFormat
+      else if Fld is TFMTBCDField then
+        TFMTBCDField(Fld).DisplayFormat := ADisplayFormat
+      else if Fld is TBCDField then
+        TBCDField(Fld).DisplayFormat := ADisplayFormat;
+    end;
+  end;
+
+begin
+  // Rebuild columns explicitly so we control order, titles and alignment.
+  FGrid.Columns.Clear;
+  SetCol('ID',    'ID',          50,  taRightJustify);
+  SetCol('CODE',  'Code',        90,  taLeftJustify);
+  SetCol('NAME',  'Name',        260, taLeftJustify);
+  SetCol('PRICE', 'Price (EUR)', 110, taRightJustify, '#,##0.00');
+  SetCol('QTY',   'Quantity',    90,  taRightJustify);
+end;
+
+procedure TfrmMain.UpdateCaption;
+begin
+  Caption := Format('%s  -  %d item(s)', [APP_TITLE, FQuery.RecordCount]);
+end;
+
 { ---------------- data operations ---------------- }
 
 procedure TfrmMain.RefreshGrid(const ASearch: string);
@@ -244,6 +294,8 @@ begin
     FQuery.ParamByName('s').AsString := '%' + ASearch + '%';
   end;
   FQuery.Open;
+  ConfigureGridColumns;   // titles, widths, alignment, price format
+  UpdateCaption;          // show row count in the window title
 end;
 
 procedure TfrmMain.ClearInputs;
