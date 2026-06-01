@@ -1,0 +1,66 @@
+# ============================================================
+#  .gitignore за Delphi / RAD Studio проекти
+# ============================================================
+
+# --- Компилирани файлове ---
+*.exe
+*.dll
+*.bpl
+*.bpi
+*.dcp
+*.so
+*.apk
+*.drc
+*.map
+*.dres
+*.rsm
+*.tds
+*.dcu
+*.lib
+*.a
+*.o
+*.ocx
+
+# --- Locally generated / IDE state ---
+*.local
+*.identcache
+*.projdata
+*.tvsconfig
+*.dsk
+*.stat
+
+# --- History папки на IDE ---
+__history/
+__recovery/
+
+# --- Build output папки ---
+Win32/
+Win64/
+OSX32/
+OSX64/
+Android/
+Android64/
+iOSDevice/
+iOSDevice64/
+iOSSimulator/
+Linux64/
+
+# Често използвани изходни папки (ако ги ползваш)
+[Dd]ebug/
+[Rr]elease/
+bin/
+lib/
+
+# --- Backup файлове ---
+*.~*
+*.bak
+
+# --- Windows системни ---
+Thumbs.db
+desktop.ini
+
+# ============================================================
+#  ВАЖНО: качваме изходния код:
+#  .pas .dpr .dfm .dproj .groupproj .fmx .res
+#  Те НЕ са в списъка по-горе, значи Git ще ги пази.
+# ============================================================
